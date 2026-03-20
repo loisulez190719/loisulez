@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Spotify Desktop</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#1DB954" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Spotify Desktop" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Circular+Std:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:   #1DB954;
+      --green-d: #17a347;
+      --bg:      #0a0a0a;
+      --surface: #111111;
+      --border:  #222222;
+      --muted:   #555555;
+      --text:    #f0f0f0;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      overflow: hidden;
+    }
+
+    /* ── BACKGROUND GRID ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: .35;
+    }
+
+    /* ── GLOW ── */
+    body::after {
+      content: '';
+      position: fixed;
+      width: 420px; height: 420px;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -60%);
+      background: radial-gradient(circle, #1DB95422 0%, transparent 70%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── WRAPPER ── */
+    #app {
+      position: relative; z-index: 1;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      gap: 2rem;
+    }
+
+    /* ── LOGO BLOCK ── */
+    .logo-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      animation: fadeUp .6s ease both;
+    }
+
+    .logo-icon {
+      width: 72px; height: 72px;
+      background: var(--green);
+      border-radius: 50%;
+      display: grid; place-items: center;
+      box-shadow: 0 0 32px #1DB95466, 0 0 64px #1DB95422;
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    .logo-icon svg { width: 40px; height: 40px; fill: #000; }
+
+    .logo-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: var(--text);
+    }
+
+    .logo-badge {
+      font-size: .65rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--green);
+      background: #1DB95415;
+      border: 1px solid #1DB95433;
+      border-radius: 2px;
+      padding: 2px 8px;
+    }
+
+    /* ── CARD ── */
+    .card {
+      width: 100%;
+      max-width: 360px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.5rem;
+      animation: fadeUp .6s .15s ease both;
+    }
+
+    .card-label {
+      font-size: .6rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: .75rem;
+    }
+
+    /* UA display */
+    .ua-box {
+      background: #0e0e0e;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: .75rem 1rem;
+      font-size: .68rem;
+      line-height: 1.6;
+      color: #888;
+      word-break: break-all;
+      margin-bottom: 1rem;
+    }
+
+    .ua-box span { color: var(--green); }
+
+    /* Status dots */
+    .checks {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      font-size: .72rem;
+      color: var(--muted);
+    }
+
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: var(--border);
+    }
+    .dot.ok  { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .dot.bad { background: #e74c3c; box-shadow: 0 0 6px #e74c3c44; }
+    .dot.warn{ background: #f39c12; box-shadow: 0 0 6px #f39c1244; }
+
+    /* ── BUTTON ── */
+    .launch-btn {
+      display: block;
+      width: 100%;
+      max-width: 360px;
+      padding: 1rem;
+      background: var(--green);
+      color: #000;
+      font-family: 'Space Mono', monospace;
+      font-size: .85rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      text-align: center;
+      text-decoration: none;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background .2s, transform .1s, box-shadow .2s;
+      animation: fadeUp .6s .3s ease both;
+      box-shadow: 0 0 0 #1DB954;
+    }
+
+    .launch-btn:hover, .launch-btn:focus {
+      background: var(--green-d);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px #1DB95444;
+      outline: none;
+    }
+
+    .launch-btn:active { transform: translateY(0); }
+
+    /* ── STEP GUIDE ── */
+    .guide {
+      width: 100%;
+      max-width: 360px;
+      animation: fadeUp .6s .45s ease both;
+    }
+
+    .guide summary {
+      font-size: .65rem;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .guide summary::before {
+      content: '▸';
+      color: var(--green);
+      transition: transform .2s;
+    }
+
+    .guide[open] summary::before { transform: rotate(90deg); }
+
+    .steps {
+      margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: .85rem;
+      padding-left: .25rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 1.4rem 1fr;
+      gap: .5rem;
+      font-size: .72rem;
+      line-height: 1.55;
+      color: #888;
+    }
+
+    .step-num {
+      width: 1.4rem; height: 1.4rem;
+      background: var(--border);
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-size: .6rem;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+
+    .step code {
+      background: #1a1a1a;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 1px 5px;
+      font-size: .68rem;
+      color: var(--green);
+      font-family: 'Space Mono', monospace;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      font-size: .58rem;
+      letter-spacing: .1em;
+      color: var(--muted);
+      text-align: center;
+      animation: fadeUp .6s .6s ease both;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 32px #1DB95466, 0 0 64px #1DB95422; }
+      50%       { box-shadow: 0 0 48px #1DB95499, 0 0 80px #1DB95433; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Logo -->
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <!-- Spotify icon -->
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.494 17.278a.748.748 0 0 1-1.029.249c-2.82-1.722-6.369-2.112-10.547-1.158a.748.748 0 1 1-.334-1.458c4.571-1.045 8.492-.595 11.662 1.338a.75.75 0 0 1 .248 1.029zm1.466-3.256a.936.936 0 0 1-1.287.308C14.85 12.306 10.5 11.7 7.167 12.694a.937.937 0 1 1-.543-1.793c3.838-1.163 8.615-.6 11.918 1.434a.935.935 0 0 1 .418 1.687zm.126-3.39C15.5 8.397 8.498 8.167 5.042 9.201a1.123 1.123 0 1 1-.652-2.15C8.497 5.835 16.26 6.1 20.12 8.605a1.122 1.122 0 0 1-1.034 1.027z"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-title">SPOTIFY DESKTOP</div>
+      <div style="display:flex;justify-content:center;margin-top:.35rem;">
+        <span class="logo-badge">PWA · Desktop Mode</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status card -->
+  <div class="card">
+    <div class="card-label">User Agent detectado</div>
+    <div class="ua-box" id="ua-display">Cargando…</div>
+    <div class="checks" id="checks"></div>
+  </div>
+
+  <!-- Launch button -->
+  <a class="launch-btn" href="https://open.spotify.com" id="launch-link">
+    ▶ &nbsp; Abrir Spotify Web
+  </a>
+
+  <!-- How-to guide -->
+  <details class="guide">
+    <summary>Cómo activar modo escritorio en Brave</summary>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>Abre Brave en tu móvil y ve a <code>brave://flags</code></div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>Busca <code>Desktop mode</code> → activa <em>Default to desktop mode on Android</em></div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>O bien: menú <code>⋮</code> → marca <strong>Sitio de escritorio</strong> mientras estás en open.spotify.com</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div>Para que sea permanente solo para Spotify: <code>Configuración → Sitio → open.spotify.com → Modo escritorio: ON</code></div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div>Instala esta página como app: menú <code>⋮</code> → <strong>Añadir a pantalla de inicio</strong> → se abre directo como app sin barra de navegación</div>
+      </div>
+    </div>
+  </details>
+
+  <footer>Brave · open.spotify.com · Desktop UA Launcher</footer>
+</div>
+
+<script>
+  // ── Detect current UA and show status ──────────────────────────────────────
+  (function () {
+    const ua = navigator.userAgent;
+    const el = document.getElementById('ua-display');
+    const checks = document.getElementById('checks');
+
+    // Highlight key tokens
+    const highlighted = ua.replace(
+      /(Chrome\/[\d.]+|Brave|Mobile|Android|iPhone)/g,
+      '<span>$1</span>'
+    );
+    el.innerHTML = highlighted;
+
+    const isMobile   = /Mobi|Android|iPhone/i.test(ua);
+    const isBrave    = navigator.brave !== undefined || ua.includes('Brave');
+    const isDesktopUA = !isMobile;
+
+    const rows = [
+      { ok: isBrave,      text: isBrave    ? 'Navegador: Brave ✓'         : 'Navegador: No es Brave (funciona igual)' },
+      { ok: isDesktopUA,  text: isDesktopUA ? 'User Agent: Escritorio ✓'   : 'User Agent: Móvil — activa modo escritorio ↓' },
+      { ok: true,         text: 'Destino: open.spotify.com (web player)' },
+    ];
+
+    rows.forEach(r => {
+      const div = document.createElement('div');
+      div.className = 'check-row';
+      div.innerHTML = `<div class="dot ${r.ok ? 'ok' : 'warn'}"></div><span>${r.text}</span>`;
+      checks.appendChild(div);
+    });
+
+    // Auto-launch after short pause if UA already looks like desktop
+    const btn = document.getElementById('launch-link');
+    if (isDesktopUA) {
+      let t = 3;
+      btn.textContent = `▶   Abriendo Spotify en ${t}s…`;
+      const iv = setInterval(() => {
+        t--;
+        if (t <= 0) {
+          clearInterval(iv);
+          window.location.href = 'https://open.spotify.com';
+        } else {
+          btn.textContent = `▶   Abriendo Spotify en ${t}s…`;
+        }
+      }, 1000);
+      btn.addEventListener('click', e => {
+        clearInterval(iv);
+        // allow default navigation
+      });
+    }
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "Spotify Desktop",
+  "short_name": "Spotify",
+  "description": "Spotify Web Player — Desktop Mode",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#1DB954",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://open.spotifycdn.com/cdn/images/favicon.0f31d2ea.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}
